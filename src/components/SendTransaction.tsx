@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { broadcastTransaction } from '../utils/bitcoin'
 
 interface SendTransactionProps {
   walletAddress: string

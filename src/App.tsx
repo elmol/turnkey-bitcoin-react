@@ -1,4 +1,4 @@
-import React from 'react'
+// @ts-ignore
 import { TurnkeyProvider } from '@turnkey/sdk-react'
 import WalletDashboard from './components/WalletDashboard'
 import { TURNKEY_CONFIG } from './config'

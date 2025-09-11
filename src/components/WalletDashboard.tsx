@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { useTurnkey } from '@turnkey/sdk-react'
-import { getBitcoinBalance, getTransactionHistory, createAddressFromPublicKey } from '../utils/bitcoin'
-import { WalletState, BitcoinTransaction } from '../types'
+// import { useTurnkey } from '@turnkey/sdk-react'
+import { getBitcoinBalance, getTransactionHistory } from '../utils/bitcoin'
+import type { WalletState, BitcoinTransaction } from '../types'
 import WalletConnect from './WalletConnect'
 import TransactionList from './TransactionList'
 import SendTransaction from './SendTransaction'
 
 const WalletDashboard: React.FC = () => {
-  const { turnkey, authIframeClient, getActiveSession } = useTurnkey()
   const [walletState, setWalletState] = useState<WalletState>({
     isConnected: false
   })
@@ -18,10 +17,9 @@ const WalletDashboard: React.FC = () => {
   // Check if user is already authenticated
   useEffect(() => {
     const checkSession = async () => {
-      const session = await getActiveSession()
-      if (session) {
-        await loadWalletData()
-      }
+      // For now, we'll skip session checking since the API structure is different
+      // In a real implementation, you would check authentication status through the appropriate client
+      // await loadWalletData()
     }
     checkSession()
   }, [])

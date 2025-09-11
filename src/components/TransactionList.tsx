@@ -1,5 +1,5 @@
 import React from 'react'
-import { BitcoinTransaction } from '../types'
+import type { BitcoinTransaction } from '../types'
 import { BITCOIN_CONFIG } from '../config'
 
 interface TransactionListProps {

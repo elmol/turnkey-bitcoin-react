@@ -1,7 +1,6 @@
 import * as bitcoin from 'bitcoinjs-lib'
 import axios from 'axios'
-import { BITCOIN_CONFIG } from '../config'
-import { BitcoinTransaction, BitcoinUTXO } from '../types'
+import type { BitcoinTransaction, BitcoinUTXO } from '../types'
 
 // Bitcoin testnet4 network configuration
 export const TESTNET4_NETWORK: bitcoin.Network = {

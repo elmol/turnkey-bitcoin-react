@@ -8,6 +8,133 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Early polyfills for Node.js globals
+      if (typeof global === 'undefined') {
+        window.global = window;
+      }
+      
+      if (typeof process === 'undefined') {
+        window.process = {
+          env: {},
+          browser: true,
+          version: '',
+          versions: {},
+          platform: 'browser',
+          nextTick: (fn) => setTimeout(fn, 0),
+        };
+      }
+      
+      // Buffer polyfill - create a proper Buffer constructor
+      if (typeof Buffer === 'undefined') {
+        function BufferPolyfill(data, encoding) {
+          if (typeof data === 'string') {
+            if (encoding === 'hex') {
+              // Simple hex string to Uint8Array conversion
+              const bytes = new Uint8Array(data.length / 2);
+              for (let i = 0; i < data.length; i += 2) {
+                bytes[i / 2] = parseInt(data.substr(i, 2), 16);
+              }
+              return bytes;
+            } else {
+              // UTF-8 string to Uint8Array conversion
+              const encoder = new TextEncoder();
+              return encoder.encode(data);
+            }
+          } else if (data instanceof ArrayBuffer) {
+            return new Uint8Array(data);
+          } else if (Array.isArray(data)) {
+            return new Uint8Array(data);
+          } else if (typeof data === 'number') {
+            return new Uint8Array(data);
+          }
+          return new Uint8Array(data);
+        }
+        
+        // Make it a proper constructor
+        BufferPolyfill.prototype = Uint8Array.prototype;
+        BufferPolyfill.from = function(data, encoding) {
+          return new BufferPolyfill(data, encoding);
+        };
+        BufferPolyfill.isBuffer = function(obj) {
+          return obj instanceof Uint8Array;
+        };
+        BufferPolyfill.alloc = function(size, fill) {
+          const buffer = new Uint8Array(size);
+          if (fill !== undefined) {
+            buffer.fill(fill);
+          }
+          return buffer;
+        };
+        BufferPolyfill.allocUnsafe = function(size) {
+          return new Uint8Array(size);
+        };
+        BufferPolyfill.concat = function(list, length) {
+          if (length === undefined) {
+            length = list.reduce((acc, buf) => acc + buf.length, 0);
+          }
+          const result = new Uint8Array(length);
+          let offset = 0;
+          for (const buf of list) {
+            result.set(buf, offset);
+            offset += buf.length;
+          }
+          return result;
+        };
+        BufferPolyfill.byteLength = function(string, encoding) {
+          if (typeof string === 'string') {
+            if (encoding === 'hex') {
+              return string.length / 2;
+            } else {
+              const encoder = new TextEncoder();
+              return encoder.encode(string).length;
+            }
+          } else if (string instanceof Uint8Array) {
+            return string.length;
+          }
+          return 0;
+        };
+        BufferPolyfill.compare = function(a, b) {
+          if (a.length !== b.length) {
+            return a.length - b.length;
+          }
+          for (let i = 0; i < a.length; i++) {
+            if (a[i] !== b[i]) {
+              return a[i] - b[i];
+            }
+          }
+          return 0;
+        };
+        BufferPolyfill.copy = function(source, target, targetStart, sourceStart, sourceEnd) {
+          if (sourceStart === undefined) sourceStart = 0;
+          if (sourceEnd === undefined) sourceEnd = source.length;
+          if (targetStart === undefined) targetStart = 0;
+          
+          const length = sourceEnd - sourceStart;
+          for (let i = 0; i < length; i++) {
+            target[targetStart + i] = source[sourceStart + i];
+          }
+          return length;
+        };
+        BufferPolyfill.slice = function(start, end) {
+          return this.subarray(start, end);
+        };
+        BufferPolyfill.toString = function(encoding, start, end) {
+          if (encoding === 'hex') {
+            let hex = '';
+            for (let i = start || 0; i < (end || this.length); i++) {
+              hex += this[i].toString(16).padStart(2, '0');
+            }
+            return hex;
+          } else {
+            const decoder = new TextDecoder();
+            return decoder.decode(this.subarray(start || 0, end || this.length));
+          }
+        };
+        
+        window.Buffer = BufferPolyfill;
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

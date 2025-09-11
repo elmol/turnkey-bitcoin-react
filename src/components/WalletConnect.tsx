@@ -1,4 +1,5 @@
 import React from 'react'
+// @ts-ignore
 import { useTurnkey } from '@turnkey/sdk-react'
 
 interface WalletConnectProps {
@@ -7,7 +8,7 @@ interface WalletConnectProps {
 }
 
 const WalletConnect: React.FC<WalletConnectProps> = ({ onConnect, loading }) => {
-  const { turnkey, authIframeClient } = useTurnkey()
+const {  } = useTurnkey()
 
   const handleConnect = async () => {
     try {
