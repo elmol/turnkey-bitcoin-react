@@ -1,6 +1,6 @@
 import * as bitcoin from 'bitcoinjs-lib'
 import axios from 'axios'
-import type { BitcoinTransaction, BitcoinUTXO } from '../types'
+import type { BitcoinTransaction, BitcoinUTXO, WalletCreationResult } from '../types'
 
 // Bitcoin testnet4 network configuration
 export const TESTNET4_NETWORK: bitcoin.Network = {
@@ -123,5 +123,76 @@ export function createAddressFromPublicKey(publicKey: string): string {
   } catch (error) {
     console.error('Error creating address:', error)
     return ''
+  }
+}
+
+/**
+ * Generate a new Bitcoin wallet (for demo purposes)
+ * In production, this would integrate with Turnkey's wallet creation API
+ */
+export function createNewWallet(): WalletCreationResult {
+  try {
+    // Generate a random key pair for demo purposes
+    // In production, this would be handled by Turnkey's secure key generation
+    const keyPair = bitcoin.ECPair.makeRandom({ network: TESTNET4_NETWORK })
+    const publicKey = keyPair.publicKey.toString('hex')
+    const address = createAddressFromPublicKey(publicKey)
+    
+    // Generate a mock wallet ID (in production, this would come from Turnkey)
+    const walletId = `wallet_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    
+    return {
+      walletId,
+      address,
+      publicKey,
+      // Note: In production, mnemonic would never be exposed to the client
+      // This is only for demo purposes
+      mnemonic: 'demo-mnemonic-not-for-production-use'
+    }
+  } catch (error) {
+    console.error('Error creating new wallet:', error)
+    throw new Error('Failed to create new wallet')
+  }
+}
+
+/**
+ * Check if a wallet exists by attempting to fetch its data
+ * In production, this would check against Turnkey's API
+ */
+export async function checkWalletExists(walletId: string): Promise<boolean> {
+  try {
+    // For demo purposes, we'll simulate checking if a wallet exists
+    // In production, this would make an API call to Turnkey
+    const storedWallet = localStorage.getItem(`wallet_${walletId}`)
+    return storedWallet !== null
+  } catch (error) {
+    console.error('Error checking wallet existence:', error)
+    return false
+  }
+}
+
+/**
+ * Save wallet data to local storage (for demo purposes)
+ * In production, wallet data would be managed by Turnkey
+ */
+export function saveWalletData(walletData: WalletCreationResult): void {
+  try {
+    localStorage.setItem(`wallet_${walletData.walletId}`, JSON.stringify(walletData))
+  } catch (error) {
+    console.error('Error saving wallet data:', error)
+  }
+}
+
+/**
+ * Load wallet data from local storage (for demo purposes)
+ * In production, wallet data would be retrieved from Turnkey
+ */
+export function loadWalletData(walletId: string): WalletCreationResult | null {
+  try {
+    const storedData = localStorage.getItem(`wallet_${walletId}`)
+    return storedData ? JSON.parse(storedData) : null
+  } catch (error) {
+    console.error('Error loading wallet data:', error)
+    return null
   }
 }

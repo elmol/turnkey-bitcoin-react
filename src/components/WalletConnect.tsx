@@ -1,14 +1,20 @@
-import React from 'react'
+import React, { useState } from 'react'
 // @ts-ignore
 import { useTurnkey } from '@turnkey/sdk-react'
+import { createNewWallet, saveWalletData } from '../utils/bitcoin'
+import type { WalletCreationResult } from '../types'
 
 interface WalletConnectProps {
-  onConnect: () => void
+  onConnect: (walletData?: WalletCreationResult) => void
   loading: boolean
 }
 
 const WalletConnect: React.FC<WalletConnectProps> = ({ onConnect, loading }) => {
-const {  } = useTurnkey()
+  const { } = useTurnkey()
+  const [showCreateWallet, setShowCreateWallet] = useState(false)
+  const [walletName, setWalletName] = useState('')
+  const [creatingWallet, setCreatingWallet] = useState(false)
+  const [error, setError] = useState('')
 
   const handleConnect = async () => {
     try {
@@ -52,6 +58,43 @@ const {  } = useTurnkey()
     }
   }
 
+  const handleCreateWallet = async () => {
+    if (!walletName.trim()) {
+      setError('Please enter a wallet name')
+      return
+    }
+
+    setCreatingWallet(true)
+    setError('')
+
+    try {
+      console.log('Creating new wallet:', walletName)
+      
+      // Create new wallet
+      const walletData = createNewWallet()
+      
+      // Save wallet data (in production, this would be handled by Turnkey)
+      saveWalletData(walletData)
+      
+      console.log('Wallet created successfully:', walletData.walletId)
+      
+      // Call onConnect with the new wallet data
+      onConnect(walletData)
+      
+    } catch (error) {
+      console.error('Error creating wallet:', error)
+      setError('Failed to create wallet. Please try again.')
+    } finally {
+      setCreatingWallet(false)
+    }
+  }
+
+  const handleCancelCreate = () => {
+    setShowCreateWallet(false)
+    setWalletName('')
+    setError('')
+  }
+
   return (
     <div className="wallet-connect">
       <div className="connect-container">
@@ -61,7 +104,7 @@ const {  } = useTurnkey()
         <div className="auth-methods">
           <button 
             onClick={handleEmailAuth}
-            disabled={loading}
+            disabled={loading || creatingWallet}
             className="auth-button email-auth"
           >
             {loading ? 'Connecting...' : 'Connect with Email'}
@@ -69,7 +112,7 @@ const {  } = useTurnkey()
           
           <button 
             onClick={handlePasskeyAuth}
-            disabled={loading}
+            disabled={loading || creatingWallet}
             className="auth-button passkey-auth"
           >
             {loading ? 'Connecting...' : 'Connect with Passkey'}
@@ -77,12 +120,62 @@ const {  } = useTurnkey()
           
           <button 
             onClick={handleConnect}
-            disabled={loading}
+            disabled={loading || creatingWallet}
             className="auth-button demo-auth"
           >
             {loading ? 'Connecting...' : 'Demo Mode (Testnet)'}
           </button>
+          
+          <button 
+            onClick={() => setShowCreateWallet(true)}
+            disabled={loading || creatingWallet}
+            className="auth-button create-wallet"
+          >
+            Create New Wallet
+          </button>
         </div>
+
+        {showCreateWallet && (
+          <div className="create-wallet-form">
+            <h3>Create New Wallet</h3>
+            <p>Create a new Bitcoin wallet for testnet4. This is for demo purposes only.</p>
+            
+            <div className="form-group">
+              <label htmlFor="walletName">Wallet Name:</label>
+              <input
+                id="walletName"
+                type="text"
+                value={walletName}
+                onChange={(e) => setWalletName(e.target.value)}
+                placeholder="Enter a name for your wallet"
+                disabled={creatingWallet}
+              />
+            </div>
+            
+            {error && (
+              <div className="error-message">
+                {error}
+              </div>
+            )}
+            
+            <div className="form-actions">
+              <button 
+                onClick={handleCreateWallet}
+                disabled={creatingWallet || !walletName.trim()}
+                className="create-button"
+              >
+                {creatingWallet ? 'Creating...' : 'Create Wallet'}
+              </button>
+              <button 
+                onClick={handleCancelCreate}
+                disabled={creatingWallet}
+                className="cancel-button"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
         
         <div className="info">
           <h3>What is Turnkey?</h3>

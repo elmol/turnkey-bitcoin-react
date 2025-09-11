@@ -3,6 +3,8 @@ export interface WalletState {
   address?: string;
   balance?: number;
   publicKey?: string;
+  walletId?: string;
+  isNewWallet?: boolean;
 }
 
 export interface BitcoinTransaction {
@@ -25,4 +27,11 @@ export interface BitcoinUTXO {
   vout: number;
   value: number;
   scriptPubKey: string;
+}
+
+export interface WalletCreationResult {
+  walletId: string;
+  address: string;
+  publicKey: string;
+  mnemonic?: string; // Only for demo purposes - in production this would be handled by Turnkey
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 // import { useTurnkey } from '@turnkey/sdk-react'
 import { getBitcoinBalance, getTransactionHistory } from '../utils/bitcoin'
-import type { WalletState, BitcoinTransaction } from '../types'
+import type { WalletState, BitcoinTransaction, WalletCreationResult } from '../types'
 import WalletConnect from './WalletConnect'
 import TransactionList from './TransactionList'
 import SendTransaction from './SendTransaction'
@@ -13,6 +13,7 @@ const WalletDashboard: React.FC = () => {
   const [transactions, setTransactions] = useState<BitcoinTransaction[]>([])
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'transactions' | 'send'>('overview')
+  const [showNewWalletMessage, setShowNewWalletMessage] = useState(false)
 
   // Check if user is already authenticated
   useEffect(() => {
@@ -24,20 +25,34 @@ const WalletDashboard: React.FC = () => {
     checkSession()
   }, [])
 
-  const loadWalletData = async () => {
+  const loadWalletData = async (walletData?: WalletCreationResult) => {
     setLoading(true)
     try {
-      // This is a simplified example - you'll need to implement actual wallet creation/retrieval
-      // For now, we'll simulate having a Bitcoin address
-      const mockAddress = 'tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4' // Example testnet address
+      let address: string
+      let walletId: string | undefined
+      let isNewWallet = false
+
+      if (walletData) {
+        // Use the provided wallet data (from wallet creation)
+        address = walletData.address
+        walletId = walletData.walletId
+        isNewWallet = true
+        setShowNewWalletMessage(true)
+      } else {
+        // Load existing wallet or use mock address
+        const mockAddress = 'tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4' // Example testnet address
+        address = mockAddress
+      }
       
-      const balance = await getBitcoinBalance(mockAddress)
-      const txHistory = await getTransactionHistory(mockAddress)
+      const balance = await getBitcoinBalance(address)
+      const txHistory = await getTransactionHistory(address)
       
       setWalletState({
         isConnected: true,
-        address: mockAddress,
+        address,
         balance,
+        walletId,
+        isNewWallet,
       })
       
       setTransactions(txHistory)
@@ -48,8 +63,8 @@ const WalletDashboard: React.FC = () => {
     }
   }
 
-  const handleConnect = async () => {
-    await loadWalletData()
+  const handleConnect = async (walletData?: WalletCreationResult) => {
+    await loadWalletData(walletData)
   }
 
   if (!walletState.isConnected) {
@@ -58,9 +73,30 @@ const WalletDashboard: React.FC = () => {
 
   return (
     <div className="wallet-dashboard">
+      {showNewWalletMessage && walletState.isNewWallet && (
+        <div className="new-wallet-notification">
+          <div className="notification-content">
+            <h3>🎉 New Wallet Created!</h3>
+            <p>Your new Bitcoin wallet has been created successfully. You can now start using it on testnet4.</p>
+            <button 
+              onClick={() => setShowNewWalletMessage(false)}
+              className="dismiss-btn"
+            >
+              Got it!
+            </button>
+          </div>
+        </div>
+      )}
+      
       <div className="wallet-header">
         <div className="wallet-info">
           <h2>Your Wallet</h2>
+          {walletState.walletId && (
+            <div className="wallet-id">
+              <strong>Wallet ID:</strong> 
+              <code>{walletState.walletId}</code>
+            </div>
+          )}
           <div className="address">
             <strong>Address:</strong> 
             <code>{walletState.address}</code>
