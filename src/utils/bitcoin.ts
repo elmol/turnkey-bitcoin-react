@@ -134,7 +134,11 @@ export function createNewWallet(): WalletCreationResult {
   try {
     // Generate a random key pair for demo purposes
     // In production, this would be handled by Turnkey's secure key generation
-    const keyPair = bitcoin.ECPair.makeRandom({ network: TESTNET4_NETWORK })
+    // For bitcoinjs-lib v6, we need to generate random bytes and create the key pair manually
+    const privateKeyBytes = new Uint8Array(32)
+    crypto.getRandomValues(privateKeyBytes)
+    const privateKey = Buffer.from(privateKeyBytes)
+    const keyPair = bitcoin.ECPair.fromPrivateKey(privateKey, { network: TESTNET4_NETWORK })
     const publicKey = keyPair.publicKey.toString('hex')
     const address = createAddressFromPublicKey(publicKey)
     
