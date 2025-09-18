@@ -33,5 +33,6 @@ export interface WalletCreationResult {
   walletId: string;
   address: string;
   publicKey: string;
+  privateKey?: string; // Only for demo purposes - in production this would be handled by Turnkey
   mnemonic?: string; // Only for demo purposes - in production this would be handled by Turnkey
 }

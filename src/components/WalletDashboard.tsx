@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
 // import { useTurnkey } from '@turnkey/sdk-react'
-import { getBitcoinBalance, getTransactionHistory } from '../utils/bitcoin'
+import { getBitcoinBalance, getTransactionHistory, loadWalletData as loadWalletDataFromStorage } from '../utils/bitcoin'
 import type { WalletState, BitcoinTransaction, WalletCreationResult } from '../types'
 import WalletConnect from './WalletConnect'
 import TransactionList from './TransactionList'
 import SendTransaction from './SendTransaction'
+import ExportPrivateKeyModal from './ExportPrivateKeyModal'
 
 const WalletDashboard: React.FC = () => {
   const [walletState, setWalletState] = useState<WalletState>({
@@ -14,6 +15,8 @@ const WalletDashboard: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'transactions' | 'send'>('overview')
   const [showNewWalletMessage, setShowNewWalletMessage] = useState(false)
+  const [showExportModal, setShowExportModal] = useState(false)
+  const [currentWalletData, setCurrentWalletData] = useState<WalletCreationResult | null>(null)
 
   // Check if user is already authenticated
   useEffect(() => {
@@ -67,6 +70,27 @@ const WalletDashboard: React.FC = () => {
     await loadWalletData(walletData)
   }
 
+  const handleExportPrivateKey = async () => {
+    if (!walletState.walletId) {
+      console.error('No wallet ID available')
+      return
+    }
+
+    try {
+      // Load wallet data to get private key
+      const walletData = loadWalletDataFromStorage(walletState.walletId as string)
+      if (!walletData) {
+        console.error('Wallet data not found')
+        return
+      }
+
+      setCurrentWalletData(walletData)
+      setShowExportModal(true)
+    } catch (error) {
+      console.error('Error loading wallet data for export:', error)
+    }
+  }
+
   if (!walletState.isConnected) {
     return <WalletConnect onConnect={handleConnect} loading={loading} />
   }
@@ -110,6 +134,17 @@ const WalletDashboard: React.FC = () => {
           <div className="balance">
             <strong>Balance:</strong> {walletState.balance?.toFixed(8)} BTC
           </div>
+          {walletState.walletId && (
+            <div className="wallet-actions">
+              <button 
+                onClick={handleExportPrivateKey}
+                className="export-key-btn"
+                title="Export Private Key (Demo Only)"
+              >
+                🔐 Export Private Key
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -171,6 +206,15 @@ const WalletDashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      <ExportPrivateKeyModal
+        isOpen={showExportModal}
+        onClose={() => {
+          setShowExportModal(false)
+          setCurrentWalletData(null)
+        }}
+        walletData={currentWalletData}
+      />
     </div>
   )
 }
