@@ -72,7 +72,8 @@ const WalletDashboard: React.FC = () => {
 
   const handleExportPrivateKey = async () => {
     if (!walletState.walletId) {
-      console.error('No wallet ID available')
+      console.error('No wallet ID available - using demo mode')
+      alert('No wallet ID available. This is demo mode - private key export is only available for newly created wallets. Please create a new wallet to use this feature.')
       return
     }
 
@@ -81,13 +82,22 @@ const WalletDashboard: React.FC = () => {
       const walletData = loadWalletDataFromStorage(walletState.walletId as string)
       if (!walletData) {
         console.error('Wallet data not found')
+        alert('Wallet data not found. Please create a new wallet first.')
         return
       }
 
+      if (!walletData.privateKey) {
+        console.error('No private key available in wallet data')
+        alert('No private key available. This wallet was not created with private key export capability.')
+        return
+      }
+
+      console.log('Loading wallet data for export:', walletData)
       setCurrentWalletData(walletData)
       setShowExportModal(true)
     } catch (error) {
       console.error('Error loading wallet data for export:', error)
+      alert('Error loading wallet data: ' + error)
     }
   }
 
@@ -134,17 +144,15 @@ const WalletDashboard: React.FC = () => {
           <div className="balance">
             <strong>Balance:</strong> {walletState.balance?.toFixed(8)} BTC
           </div>
-          {walletState.walletId && (
-            <div className="wallet-actions">
-              <button 
-                onClick={handleExportPrivateKey}
-                className="export-key-btn"
-                title="Export Private Key (Demo Only)"
-              >
-                🔐 Export Private Key
-              </button>
-            </div>
-          )}
+          <div className="wallet-actions">
+            <button 
+              onClick={handleExportPrivateKey}
+              className="export-key-btn"
+              title="Export Private Key (Demo Only)"
+            >
+              🔐 Export Private Key
+            </button>
+          </div>
         </div>
       </div>
 

@@ -28,6 +28,7 @@ const ExportPrivateKeyModal: React.FC<ExportPrivateKeyModalProps> = ({
         setExportData(data)
       } catch (error) {
         console.error('Error preparing export data:', error)
+        alert('Error: Could not export private key. Make sure the wallet has a private key available.')
         onClose()
       }
     }
