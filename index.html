@@ -105,6 +105,20 @@
           }
           return 0;
         };
+        BufferPolyfill.prototype.equals = function(other) {
+          if (!BufferPolyfill.isBuffer(other)) {
+            return false;
+          }
+          if (this.length !== other.length) {
+            return false;
+          }
+          for (let i = 0; i < this.length; i++) {
+            if (this[i] !== other[i]) {
+              return false;
+            }
+          }
+          return true;
+        };
         BufferPolyfill.copy = function(source, target, targetStart, sourceStart, sourceEnd) {
           if (sourceStart === undefined) sourceStart = 0;
           if (sourceEnd === undefined) sourceEnd = source.length;
@@ -116,10 +130,10 @@
           }
           return length;
         };
-        BufferPolyfill.slice = function(start, end) {
+        BufferPolyfill.prototype.slice = function(start, end) {
           return this.subarray(start, end);
         };
-        BufferPolyfill.toString = function(encoding, start, end) {
+        BufferPolyfill.prototype.toString = function(encoding, start, end) {
           if (encoding === 'hex') {
             let hex = '';
             for (let i = start || 0; i < (end || this.length); i++) {
@@ -130,6 +144,40 @@
             const decoder = new TextDecoder();
             return decoder.decode(this.subarray(start || 0, end || this.length));
           }
+        };
+        BufferPolyfill.prototype.equals = function(other) {
+          if (!BufferPolyfill.isBuffer(other)) {
+            return false;
+          }
+          if (this.length !== other.length) {
+            return false;
+          }
+          for (let i = 0; i < this.length; i++) {
+            if (this[i] !== other[i]) {
+              return false;
+            }
+          }
+          return true;
+        };
+        BufferPolyfill.prototype.readUInt32BE = function(offset) {
+          return (this[offset] << 24) | (this[offset + 1] << 16) | (this[offset + 2] << 8) | this[offset + 3];
+        };
+        BufferPolyfill.prototype.readUInt32LE = function(offset) {
+          return this[offset] | (this[offset + 1] << 8) | (this[offset + 2] << 16) | (this[offset + 3] << 24);
+        };
+        BufferPolyfill.prototype.writeUInt32BE = function(value, offset) {
+          this[offset] = (value >>> 24) & 0xff;
+          this[offset + 1] = (value >>> 16) & 0xff;
+          this[offset + 2] = (value >>> 8) & 0xff;
+          this[offset + 3] = value & 0xff;
+          return offset + 4;
+        };
+        BufferPolyfill.prototype.writeUInt32LE = function(value, offset) {
+          this[offset] = value & 0xff;
+          this[offset + 1] = (value >>> 8) & 0xff;
+          this[offset + 2] = (value >>> 16) & 0xff;
+          this[offset + 3] = (value >>> 24) & 0xff;
+          return offset + 4;
         };
         
         window.Buffer = BufferPolyfill;
